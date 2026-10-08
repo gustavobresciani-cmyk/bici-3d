@@ -6,7 +6,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "optimize": "gltf-transform optimize models-src/bici.glb public/models/bici.glb --compress meshopt --texture-compress false --simplify false --join false --flatten false --instance false --palette false",
+    "optimize": "node -e \"require('fs').mkdirSync('public/models',{recursive:true})\" && gltf-transform optimize models-src/bici.glb public/models/bici.glb --compress meshopt --texture-compress false --simplify false --join false --flatten false --instance false --palette false",
     "predev": "npm run optimize",
     "dev": "astro dev",
     "prebuild": "npm run optimize",
