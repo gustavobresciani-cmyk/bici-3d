@@ -26,3 +26,5 @@ Consult these guides before working on related tasks:
 This is a Needle Engine project (@needle-tools/engine 5.1). The 3D model comes from `../blender/bici.py` (exported raw to `models-src/bici.glb`, compressed with `npm run optimize` into `public/models/bici.glb`). Scroll logic lives in `src/scripts/bike.ts`; part texts and camera views in `src/data/parts.ts`.
 
 Note: Needle stops rendering if the `<needle-engine>` element itself has `opacity: 0`, so fade the parent container instead.
+
+Figma (diseño editable, equipo Finsweet): https://www.figma.com/design/Br1e8eLa1NxdfKCaoXXyhF — variables "Bici · Tokens" = :root de global.css; componentes Tag, Nav Item, Chip, Part Card, Button, Topbar.

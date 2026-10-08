@@ -508,7 +508,6 @@ def build_fork(M):
     hd = head_dir()
     crown = fork_crown()
     fwd = Vector((hd.z, 0, -hd.x))
-    p.tube(crown, HEAD_TOP + hd * 0.045, 0.0125, metal, seg=24)           # tubo de dirección (steerer)
     p.tube(crown + hd * 0.012, crown + hd * 0.020, 0.0195, dark, seg=32)  # anillo de rodamiento
     p.box(crown - hd * 0.002, (0.034, 0.112, 0.026), paint, rot=basis(fwd, Y, hd))   # corona
     for s in (-1, 1):
@@ -593,6 +592,9 @@ def build_handlebar(M):
     fwd = Vector((hd.z, 0, -hd.x))
     # potencia: abrazadera al tubo de dirección + extensión + tapa frontal con 4 tornillos
     c0, c1 = HEAD_TOP + hd * 0.013, HEAD_TOP + hd * 0.053
+    # tubo de dirección (steerer): va con el manubrio para que en la vista explotada
+    # salgan juntos; el corte queda sobre la corona de la horquilla
+    p.tube(fork_crown() + hd * 0.021, c1 - hd * 0.002, 0.0125, metal, seg=24)
     p.tube(c0, c1, 0.0175, dark, seg=32)
     p.tube(c1, c1 + hd * 0.005, 0.0165, dark, seg=32)                      # tapa superior
     p.tube(c1 + hd * 0.004, c1 + hd * 0.008, 0.0045, metal, seg=6)

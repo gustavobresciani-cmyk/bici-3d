@@ -71,6 +71,10 @@ function mixViews(a: Resolved, b: Resolved, t: number): Resolved {
   };
 }
 
+// el fondo del 3D sale de la variable --bg del CSS → un solo lugar para cambiarlo
+const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+if (bg) document.querySelector("needle-engine")?.setAttribute("background-color", bg);
+
 // ---------- scroll → estado de la escena ----------
 const sections = Array.from(document.querySelectorAll<HTMLElement>("[data-scene]"));
 const isDesktop = () => window.innerWidth >= 900;

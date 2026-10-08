@@ -26,6 +26,8 @@ export type Part = {
   kicker: string;
   body: string;
   details: string[];
+  /** cuánto queda fija la tarjeta (scroll extra, ej. "150vh"). Si no se indica, usa --part-hold del CSS */
+  hold?: string;
   /** nodos del .glb que forman esta pieza (nombres de objetos en Blender) */
   nodes: string[];
   view: View;
@@ -50,7 +52,7 @@ export const PARTS: Part[] = [
     kicker: "Dirección y estabilidad",
     body:
       "Sostiene la rueda delantera y gira junto con el manubrio. La curva de sus brazos adelanta el eje de la rueda, lo que hace que la bici vaya derecha sola y absorba parte de las vibraciones del camino. En la corona va montado el freno delantero.",
-    details: ["Tubo de dirección", "Corona", "Brazos curvos", "Freno de herradura"],
+    details: ["Corona", "Brazos curvos", "Punteras", "Freno de herradura"],
     nodes: ["BICI_Horquilla"],
     view: { az: -32, el: 8, dist: 1.6, target: "BICI_Horquilla" },
   },
@@ -82,8 +84,8 @@ export const PARTS: Part[] = [
     name: "Manubrio",
     kicker: "Control en tus manos",
     body:
-      "Desde acá se dirige y se frena. La potencia lo une a la horquilla, los puños dan agarre y las manetas tiran de los cables que accionan los frenos. El timbre también tiene su lugar.",
-    details: ["Potencia", "Puños", "Manetas de freno", "Timbre"],
+      "Desde acá se dirige y se frena. El tubo de dirección baja por dentro del cuadro hasta la horquilla y la potencia lo une al manubrio. Los puños dan agarre y las manetas tiran de los cables que accionan los frenos.",
+    details: ["Tubo de dirección", "Potencia", "Puños", "Manetas de freno"],
     nodes: ["BICI_Manubrio"],
     view: { az: -18, el: 22, dist: 1.25, target: "BICI_Manubrio" },
   },
@@ -115,4 +117,6 @@ export const NODE_LABELS: Record<string, string> = {
  * cuadro cae en el hueco del triángulo, así que se sube al tubo superior. */
 export const LABEL_ANCHORS: Record<string, [number, number, number]> = {
   BICI_Cuadro: [0.02, 0, 0.24],
+  // el manubrio incluye el tubo de dirección: se apunta a la potencia, no al centro
+  BICI_Manubrio: [-0.04, 0, 0.06],
 };

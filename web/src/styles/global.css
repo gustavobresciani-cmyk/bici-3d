@@ -1,13 +1,35 @@
 :root {
-  --bg: #ece7dd;
-  --ink: #1d2621;
-  --ink-soft: #55605a;
-  --green: #1f4d3a;
-  --cream: #c9a97a;
-  --card: rgba(246, 243, 236, 0.86);
-  --line: rgba(29, 38, 33, 0.14);
-  --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* ===== DISEÑO: cambiá estos valores y se actualiza toda la página ===== */
+
+  /* colores */
+  --bg: #ece7dd;          /* fondo de la página Y del 3D (se sincroniza solo) */
+  --ink: #1d2621;         /* texto principal */
+  --ink-soft: #55605a;    /* texto secundario */
+  --accent: #1f4d3a;      /* acento: títulos en cursiva, puntos, etiqueta activa, menú */
+  --on-accent: #f6f3ec;   /* texto sobre el acento */
+  --card: rgba(246, 243, 236, 0.86);   /* fondo de las tarjetas */
+  --line: rgba(29, 38, 33, 0.14);      /* bordes finos */
+
+  /* tipografías (si cambiás la familia, actualizá también el <link> de Google Fonts en index.astro) */
+  --serif: "Instrument Serif", Georgia, serif;   /* títulos */
+  --sans: "Inter", system-ui, -apple-system, sans-serif;   /* textos */
+
+  /* etiquetas sobre las piezas (punto + línea + nombre) */
+  --tag-dot-size: 10px;
+  --tag-dot-color: var(--accent);
+  --tag-line-length: 46px;
+  --tag-line-angle: 35deg;           /* 0deg = vertical, 90deg = horizontal a la derecha */
+  --tag-line-color: rgba(29, 38, 33, 0.5);
+  --tag-font-size: 12px;
+  --tag-bg: rgba(246, 243, 236, 0.92);
+  --tag-text: var(--ink);
+  --tag-radius: 999px;               /* 999px = píldora, 4px = rectángulo */
+  --tag-focus-bg: var(--accent);     /* etiqueta de la pieza en foco */
+  --tag-focus-text: var(--on-accent);
+
+  /* tiempo que cada tarjeta queda fija en pantalla (scroll extra) · se puede pisar por pieza en parts.ts */
+  --part-hold: 80vh;
+
   --gutter: clamp(16px, 4vw, 56px);
 }
 
@@ -41,7 +63,7 @@ h2 {
 
 em {
   font-style: italic;
-  color: var(--green);
+  color: var(--accent);
 }
 
 .eyebrow {
@@ -49,7 +71,7 @@ em {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--green);
+  color: var(--accent);
   margin: 0 0 14px;
 }
 
@@ -105,12 +127,12 @@ em {
 
 .tag__dot {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
+  width: var(--tag-dot-size);
+  height: var(--tag-dot-size);
+  margin: calc(var(--tag-dot-size) / -2) 0 0 calc(var(--tag-dot-size) / -2);
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 4px rgba(31, 77, 58, 0.18);
+  background: var(--tag-dot-color);
+  box-shadow: 0 0 0 calc(var(--tag-dot-size) * 0.4) color-mix(in srgb, var(--tag-dot-color) 18%, transparent);
 }
 
 .tag__line {
@@ -118,30 +140,31 @@ em {
   left: 0;
   bottom: 0;
   width: 1px;
-  height: 46px;
-  background: var(--ink);
-  opacity: 0.5;
+  height: var(--tag-line-length);
+  background: var(--tag-line-color);
   transform-origin: bottom;
-  transform: rotate(35deg);
+  transform: rotate(var(--tag-line-angle));
 }
 
+/* el nombre se ubica solo al final de la línea, según su largo y ángulo */
 .tag__text {
   position: absolute;
-  left: 26px;
-  bottom: 38px;
+  left: calc(sin(var(--tag-line-angle)) * var(--tag-line-length) + 4px);
+  bottom: calc(cos(var(--tag-line-angle)) * var(--tag-line-length) - 0.9em);
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--tag-font-size);
   font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(246, 243, 236, 0.92);
+  padding: 0.4em 0.85em;
+  border-radius: var(--tag-radius);
+  background: var(--tag-bg);
+  color: var(--tag-text);
   border: 1px solid var(--line);
 }
 
 .tag.is-focus .tag__text {
-  background: var(--green);
-  border-color: var(--green);
-  color: #f6f3ec;
+  background: var(--tag-focus-bg);
+  border-color: var(--tag-focus-bg);
+  color: var(--tag-focus-text);
 }
 
 /* ---------- barra superior e índice ---------- */
@@ -185,8 +208,8 @@ em {
 }
 
 .index a.is-active {
-  background: var(--green);
-  color: #f6f3ec;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .index__num {
@@ -270,10 +293,18 @@ main {
 }
 
 /* tarjetas de cada pieza */
+/* La sección mide una pantalla + --part-hold; la tarjeta queda fija (sticky)
+   mientras se recorre ese tramo y después sigue el scroll normal. */
 .part {
+  min-height: calc(100vh + var(--hold, var(--part-hold)));
+}
+
+.part__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: flex;
   align-items: center;
-  min-height: 120vh;
 }
 
 .card {
@@ -354,7 +385,7 @@ main {
     padding-top: 96px;
   }
 
-  .part {
+  .part__pin {
     align-items: flex-end;
     padding-bottom: 72px; /* deja lugar al menú de Needle */
   }
