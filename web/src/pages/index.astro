@@ -1,0 +1,116 @@
+---
+import "../styles/global.css";
+import { NODE_LABELS, PARTS } from "../data/parts";
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Anatomía de una bicicleta</title>
+    <meta name="description" content="Una bicicleta que se desarma pieza por pieza mientras scrolleás." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- escena 3D fija detrás del contenido -->
+    <div class="stage" aria-hidden="true">
+      <needle-engine
+        src="/models/bici.glb"
+        camera-controls="0"
+        background-color="#ECE7DD"
+        environment-image="studio"
+        environment-intensity="1.1"
+        tone-mapping="neutral"
+        contactshadows="0.55"
+      ></needle-engine>
+      <div class="tags">
+        {
+          Object.entries(NODE_LABELS).map(([node, label]) => (
+            <div class="tag" data-tag={node}>
+              <span class="tag__dot" />
+              <span class="tag__line" />
+              <span class="tag__text">{label}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <header class="topbar">
+      <span class="brand">Anatomía <em>de una bicicleta</em></span>
+      <nav class="index" aria-label="Piezas">
+        {
+          PARTS.map((p) => (
+            <a href={`#${p.id}`} data-nav={p.id}>
+              <span class="index__num">{p.number}</span>
+              <span class="index__name">{p.name}</span>
+            </a>
+          ))
+        }
+      </nav>
+    </header>
+
+    <main>
+      <section class="scene hero" data-scene="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Una bici, siete piezas</p>
+          <h1>Anatomía de<br /><em>una bicicleta</em></h1>
+          <p class="lead">Scrolleá para desarmarla y conocer cada una de sus partes.</p>
+        </div>
+        <div class="scroll-hint" aria-hidden="true"><span></span>Scroll</div>
+      </section>
+
+      <section class="scene explode" data-scene="explode">
+        <div class="explode__copy">
+          <p class="eyebrow">Vista explotada</p>
+          <h2>Cada pieza<br /><em>en su lugar</em></h2>
+        </div>
+      </section>
+
+      {
+        PARTS.map((p) => (
+          <section class="scene part" id={p.id} data-scene="part" data-part={p.id}>
+            <article class="card">
+              <p class="card__num">{p.number} <span>/ 0{PARTS.length}</span></p>
+              <p class="eyebrow">{p.kicker}</p>
+              <h2>{p.name}</h2>
+              <p class="card__body">{p.body}</p>
+              <ul class="card__details">
+                {p.details.map((d) => (
+                  <li>{d}</li>
+                ))}
+              </ul>
+            </article>
+          </section>
+        ))
+      }
+
+      <section class="scene assemble" data-scene="assemble">
+        <div class="explode__copy">
+          <p class="eyebrow">De vuelta a una sola pieza</p>
+          <h2>Todo <em>encaja</em></h2>
+        </div>
+      </section>
+
+      <section class="scene outro" data-scene="outro">
+        <div class="outro__copy">
+          <h2>Lista para <em>rodar</em></h2>
+          <p class="lead">Modelada y animada con un script de Python en Blender, publicada en la web con Needle Engine y Astro.</p>
+          <a class="button" href="#top" data-top>Volver a empezar</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      import "@needle-tools/engine";
+      import "../scripts/bike";
+      import "../scripts/ui";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+dist/
+.astro/
+*.blend1
+blender/preview/frames/
+# se genera en el build a partir de web/models-src/bici.glb
+web/public/models/bici.glb

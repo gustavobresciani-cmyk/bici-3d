@@ -1,0 +1,19 @@
+# Netlify: el sitio vive en /web (Astro + Needle Engine)
+[build]
+  base = "web"
+  command = "npm run build"   # prebuild comprime models-src/bici.glb → public/models/bici.glb
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# el modelo 3D y los assets de Astro llevan cache larga
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

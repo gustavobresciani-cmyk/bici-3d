@@ -1,0 +1,24 @@
+{
+  "name": "bici-3d-web",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "optimize": "gltf-transform optimize models-src/bici.glb public/models/bici.glb --compress meshopt --texture-compress false --simplify false --join false --flatten false --instance false --palette false",
+    "predev": "npm run optimize",
+    "dev": "astro dev",
+    "prebuild": "npm run optimize",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@needle-tools/engine": "^5.1.14",
+    "astro": "^7.3.8"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.1.1"
+  }
+}
