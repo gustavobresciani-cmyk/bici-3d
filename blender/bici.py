@@ -97,13 +97,18 @@ BEVEL_EDGES = True                   # chaflán en aristas vivas (brillos en los
 BEVEL_WIDTH = 0.0006                 # tamaño del chaflán en metros
 SMOOTH_ANGLE = 35                    # aristas con más ángulo que esto quedan vivas
 
-# Desplazamiento de cada parte en la vista explotada (x adelante, y lateral, z arriba)
+# Desplazamiento de cada parte en la vista explotada (x adelante, y lateral, z arriba).
+# Un valor simple = recorrido en línea recta. Una LISTA = recorrido con puntos intermedios
+# (cada tramo con su propio easing): sirve para que una pieza salga deslizándose por un
+# tubo antes de irse, y al armar (la animación al revés) se inserte en vez de atravesarlo.
+HEAD_DIR = (HEAD_TOP - HEAD_BOT).normalized()     # eje del tubo de dirección
 EXPLODE = {
     "Cuadro":          (0.00, 0.00, 0.00),
     "Rueda_Trasera":   (-0.42, 0.00, 0.00),
     "Rueda_Delantera": (0.45, 0.00, 0.00),
-    "Horquilla":       (0.16, 0.00, 0.22),
-    "Manubrio":        (0.10, 0.00, 0.48),
+    "Horquilla":       tuple(-HEAD_DIR * 0.06),   # baja por el eje del tubo de dirección, cerca del cuadro
+    "Manubrio":        tuple(HEAD_DIR * 0.347),   # sube recto por el eje (como el asiento por su tubo);
+                                                  # 0.347 deja los puños a la altura del cuero del asiento
     "Asiento":         (-0.06, 0.00, 0.28),
     "Transmision":     (0.00, 0.42, -0.04),
 }
@@ -805,6 +810,12 @@ def build_drivetrain(M):
 
 
 # ============ animación ============
+def explode_path(key):
+    """Puntos del recorrido de una pieza (relativos a su posición armada)."""
+    v = EXPLODE[key]
+    return [Vector(p) for p in v] if isinstance(v, list) else [Vector(v)]
+
+
 def animate(parts):
     scene = bpy.context.scene
     scene.render.fps = FPS
@@ -821,14 +832,24 @@ def animate(parts):
         f0 = F_START + round(total * STAGGER * i)
         f1 = min(F_END, round(f0 + dur))
         spin = "Rueda" in key
-        for f, loc, rot in ((F_START, base, 0.0), (f0, base, 0.0),
-                            (f1, base + Vector(EXPLODE[key]), 1.0), (F_END, base + Vector(EXPLODE[key]), 1.0)):
+        path = explode_path(key)
+        # tiempo de cada tramo proporcional a su largo
+        lens = [(b - a).length for a, b in zip([Vector()] + path[:-1], path)]
+        total_len = sum(lens) or 1.0
+        loc_keys = [(F_START, base), (f0, base)]
+        acc = 0.0
+        for wp, l in zip(path, lens):
+            acc += l
+            loc_keys.append((round(f0 + (f1 - f0) * acc / total_len), base + wp))
+        loc_keys.append((F_END, base + path[-1]))
+        for f, loc in loc_keys:
             obj.location = loc
             obj.keyframe_insert("location", frame=f)
-            if spin:
-                # gira como si rodara: sentido según hacia dónde se desplaza en X
-                # (+Y en Blender lleva la parte de arriba de la rueda hacia +X)
-                roll = math.copysign(1.0, EXPLODE[key][0])
+        if spin:
+            # gira como si rodara: sentido según hacia dónde se desplaza en X
+            # (+Y en Blender lleva la parte de arriba de la rueda hacia +X)
+            roll = math.copysign(1.0, path[-1].x)
+            for f, rot in ((F_START, 0.0), (f0, 0.0), (f1, 1.0), (F_END, 1.0)):
                 obj.rotation_euler = (0, roll * rot * WHEEL_SPIN_TURNS * 2 * math.pi, 0)
                 obj.keyframe_insert("rotation_euler", frame=f)
         obj.location = base
