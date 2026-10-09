@@ -48,12 +48,12 @@ VIDEO_HOLD_END = 1.2                 # segundos quieta al final
 # ---------- LOOK: colores en HEX (como en Figma) ----------
 # Los materiales de la bici viajan en el .glb → se ven igual en la web.
 MATERIALS = {          #  color      metálico (0-1)  rugosidad (0 = espejo, 1 = mate)
-    "paint":  ("#1F4D3A", 0.35, 0.25),   # pintura del cuadro y horquilla (verde inglés)
+    "paint":  ("#4B5048", 0.35, 0.25),   # pintura del cuadro y horquilla (grafito · v2/swatch-graphite)
     "metal":  ("#E5E6EA", 1.00, 0.18),   # cromados (rayos, llantas, manubrio, tija)
-    "dark":   ("#3A3A3D", 0.90, 0.35),   # transmisión, potencia, punteras
-    "rubber": ("#C9A97A", 0.00, 0.80),   # flancos de las cubiertas y puños (crema)
+    "dark":   ("#2E2F31", 0.90, 0.35),   # transmisión, potencia, punteras
+    "rubber": ("#E7E5E0", 0.00, 0.80),   # flancos de las cubiertas y puños (claros, combinan con todos los colores)
     "tread":  ("#2B2724", 0.00, 0.90),   # banda de rodamiento de las cubiertas
-    "saddle": ("#A0673A", 0.00, 0.45),   # asiento (cuero miel)
+    "saddle": ("#DEDAD2", 0.00, 0.45),   # asiento (cuero claro)
 }
 PAINT_COAT = 0.6                     # barniz sobre la pintura (0 = sin brillo extra, 1 = auto recién lavado)
 
@@ -1000,6 +1000,107 @@ def render_video():
     print("Video:", out)
 
 
+# ---------- renders de cada pieza (fondo transparente) para la web v2 ----------
+PART_RENDERS = {            # archivo: piezas visibles
+    "cuadro": ["Cuadro"], "horquilla": ["Horquilla"], "ruedas": ["Rueda_Delantera"],
+    "transmision": ["Transmision"], "manubrio": ["Manubrio"], "asiento": ["Asiento"],
+    "bici": ["Cuadro", "Horquilla", "Rueda_Delantera", "Rueda_Trasera", "Transmision", "Manubrio", "Asiento"],
+}
+PART_RENDER_VIEW = dict(azimuth=38, elevation=14)   # misma vista 3/4 que la portada
+# colores del selector de la web (mismos hex que SWATCHES en web/src/data/parts.ts):
+# cada pieza se renderiza en todos → archivos <pieza>-<color>.webp
+PART_RENDER_COLORS = {"sky": "#B9CBD6", "sand": "#C9C1AE", "graphite": "#4B5048",
+                      "forest": "#1F4D3A", "accent": "#E5483A"}
+PART_RENDER_SIZE = (1200, 800)
+PART_RENDER_FILL = 0.84                              # cuánto del cuadro ocupa la pieza
+PART_RENDER_EXPOSURE = -0.6                          # brillo de estos renders (más negativo = más oscuro)
+PART_RENDER_DIR = os.path.join(HERE, "..", "web", "public", "img", "parts")
+
+
+def render_parts():
+    scene = bpy.context.scene
+    scene.frame_set(F_START)
+    cam = scene.camera
+    cam.animation_data_clear()
+    cam.data.lens = 50
+    scene.render.film_transparent = True
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.image_settings.color_mode = 'RGBA'
+    scene.render.resolution_x, scene.render.resolution_y = PART_RENDER_SIZE
+    floor = bpy.data.objects.get(PREFIX + "Piso")
+    if floor:
+        floor.hide_render = True
+    bg = next(n for n in scene.world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs["Color"].default_value = (*hex_to_linear("#F4F4F4"), 1)   # luz ambiente clara de estudio
+    bg.inputs["Strength"].default_value = 0.35
+    scene.view_settings.exposure = PART_RENDER_EXPOSURE      # evita quemar asiento y puños claros
+    parts = {o.name[len(PREFIX):]: o for o in scene.objects if o.type == 'MESH' and o.name[len(PREFIX):] in EXPLODE}
+    os.makedirs(PART_RENDER_DIR, exist_ok=True)
+    vfov = 2 * math.atan((36 * PART_RENDER_SIZE[1] / PART_RENDER_SIZE[0]) / 2 / cam.data.lens)
+    paint = bpy.data.materials[PREFIX + "Pintura"]
+    bsdf = next(n for n in paint.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+    original = tuple(bsdf.inputs["Base Color"].default_value)
+    jobs = [(name, keys, cid, hx) for name, keys in PART_RENDERS.items() for cid, hx in PART_RENDER_COLORS.items()]
+    framed = {}
+    for name, keys, cid, hx in jobs:
+        bsdf.inputs["Base Color"].default_value = (*hex_to_linear(hx), 1.0)
+        for k, o in parts.items():
+            o.hide_render = k not in keys
+        corners = [o.matrix_world @ Vector(c) for k in keys for o in [parts[k]] for c in o.bound_box]
+        lo = Vector((min(c[i] for c in corners) for i in range(3)))
+        hi = Vector((max(c[i] for c in corners) for i in range(3)))
+        radius = (hi - lo).length / 2
+        if name in framed:                      # mismo encuadre para todos los colores de una pieza
+            view = framed[name]
+            pos, target = orbit_point(view)
+            cam.location = pos
+            cam.rotation_euler = (target - pos).to_track_quat('-Z', 'Y').to_euler()
+            scene.render.filepath = os.path.join(PART_RENDER_DIR, f"{name}-{cid}.png").replace("{", "{{").replace("}", "}}")
+            bpy.ops.render.render(write_still=True)
+            continue
+        view = dict(PART_RENDER_VIEW, target=tuple((lo + hi) / 2), distance=radius / math.sin(vfov / 2))
+        # encuadre ajustado: se proyectan los vértices en cámara y se corrige distancia y centro
+        from bpy_extras.object_utils import world_to_camera_view
+        verts = [o.matrix_world @ v.co for k in keys for o in [parts[k]] for v in list(o.data.vertices)[::7]]
+        for _ in range(6):
+            pos, target = orbit_point(view)
+            cam.location = pos
+            cam.rotation_euler = (target - pos).to_track_quat('-Z', 'Y').to_euler()
+            bpy.context.view_layer.update()
+            pts = [world_to_camera_view(scene, cam, v) for v in verts]
+            xs, ys = [p.x for p in pts], [p.y for p in pts]
+            span = max(max(xs) - min(xs), max(ys) - min(ys))
+            # recentrar: desplaza el target en el plano de cámara hacia el centro de la pieza
+            cx, cy = (max(xs) + min(xs)) / 2 - 0.5, (max(ys) + min(ys)) / 2 - 0.5
+            m = cam.matrix_world.to_3x3()
+            w = 2 * view["distance"] * math.tan(vfov / 2) * PART_RENDER_SIZE[0] / PART_RENDER_SIZE[1]
+            h = 2 * view["distance"] * math.tan(vfov / 2)
+            view["target"] = tuple(Vector(view["target"]) + m @ Vector((cx * w, cy * h, 0)))
+            view["distance"] *= span / PART_RENDER_FILL
+        view = dict(view)
+        pos, target = orbit_point(view)
+        cam.location = pos
+        cam.rotation_euler = (target - pos).to_track_quat('-Z', 'Y').to_euler()
+        framed[name] = view
+        scene.render.filepath = os.path.join(PART_RENDER_DIR, f"{name}-{cid}.png").replace("{", "{{").replace("}", "}}")
+        bpy.ops.render.render(write_still=True)
+    bsdf.inputs["Base Color"].default_value = original
+    for o in parts.values():
+        o.hide_render = False
+    # a WebP para la web (~10x más liviano); si no hay ffmpeg quedan los PNG
+    import subprocess, shutil
+    ffmpeg = shutil.which("ffmpeg") or os.path.expanduser("~/.local/bin/ffmpeg")
+    for name, _keys, cid, _hx in jobs:
+        png = os.path.join(PART_RENDER_DIR, f"{name}-{cid}.png")
+        try:
+            subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-i", png, "-c:v", "libwebp", "-quality", "86",
+                            png[:-4] + ".webp"], check=True)
+            os.remove(png)
+        except Exception as ex:
+            print("WebP omitido:", ex)
+    print("Renders de piezas en", os.path.abspath(PART_RENDER_DIR))
+
+
 def render_previews():
     scene = bpy.context.scene
     os.makedirs(PREVIEW_DIR, exist_ok=True)
@@ -1087,6 +1188,8 @@ def main():
             render_previews()
         if "--video" in args:
             render_video()
+        if "--parts" in args:
+            render_parts()
 
 
 main()

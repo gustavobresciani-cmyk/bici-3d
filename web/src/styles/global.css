@@ -1,427 +1,232 @@
 :root {
-  /* ===== DISEÑO: cambiá estos valores y se actualiza toda la página ===== */
+  /* ===== DISEÑO v2: mismos nombres que las variables "Bici v2 · Tokens" de Figma ===== */
+  --bg: #ffffff;           /* v2/bg */
+  --surface: #f4f4f4;      /* v2/surface · tarjetas, palabra fantasma */
+  --surface-2: #eaeaea;    /* v2/surface-2 */
+  --line: #dcdcdc;         /* v2/line */
+  --ink: #111111;          /* v2/ink */
+  --ink-soft: #6e6e6e;     /* v2/ink-soft */
+  --ink-ghost: #cfcfcf;    /* v2/ink-ghost · 2.ª línea de los títulos */
+  --dark: #1c1c1c;         /* v2/dark · CTA y footer */
+  --dark-2: #2a2a2a;       /* v2/dark-2 · líneas sobre oscuro */
+  --on-dark: #ffffff;      /* v2/on-dark */
+  --on-dark-soft: #8c8c8c; /* v2/on-dark-soft */
+  --accent: #e5483a;       /* v2/accent · punto de las etiquetas */
+  --bike-color: #4b5048;   /* lo actualiza el selector de color */
 
-  /* colores */
-  --bg: #ece7dd;          /* fondo de la página Y del 3D (se sincroniza solo) */
-  --ink: #1d2621;         /* texto principal */
-  --ink-soft: #55605a;    /* texto secundario */
-  --accent: #1f4d3a;      /* acento: títulos en cursiva, puntos, etiqueta activa, menú */
-  --on-accent: #f6f3ec;   /* texto sobre el acento */
-  --card: rgba(246, 243, 236, 0.86);   /* fondo de las tarjetas */
-  --line: rgba(29, 38, 33, 0.14);      /* bordes finos */
+  /* tipografías (actualizar también el <link> de Google Fonts en index.astro) */
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --sans: "Inter", system-ui, -apple-system, sans-serif;
 
-  /* tipografías (si cambiás la familia, actualizá también el <link> de Google Fonts en index.astro) */
-  --serif: "Instrument Serif", Georgia, serif;   /* títulos */
-  --sans: "Inter", system-ui, -apple-system, sans-serif;   /* textos */
-
-  /* etiquetas sobre las piezas (punto + línea + nombre) */
-  --tag-dot-size: 10px;
-  --tag-dot-color: var(--accent);
-  --tag-line-length: 46px;
-  --tag-line-angle: 35deg;           /* 0deg = vertical, 90deg = horizontal a la derecha */
-  --tag-line-color: rgba(29, 38, 33, 0.5);
-  --tag-font-size: 12px;
-  --tag-bg: rgba(246, 243, 236, 0.92);
-  --tag-text: var(--ink);
-  --tag-radius: 999px;               /* 999px = píldora, 4px = rectángulo */
-  --tag-focus-bg: var(--accent);     /* etiqueta de la pieza en foco */
-  --tag-focus-text: var(--on-accent);
-
-  /* tiempo que cada tarjeta queda fija en pantalla (scroll extra) · se puede pisar por pieza en parts.ts */
-  --part-hold: 80vh;
-
-  --gutter: clamp(16px, 4vw, 56px);
+  --gutter: clamp(16px, 3.4vw, 48px);
+  --radius: 8px;
+  /* cuánto scroll dura la escena fija (portada + "Cada pieza") */
+  --showcase-length: 460vh;
+  /* "Las piezas": alto de cada fila y cuánto crece la tarjeta al pasar el mouse */
+  --row-height: 386px;
+  --row-height-hover: 520px;
+  --hover-grow: 2.2;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+p, h1, h2, h3 { margin: 0; }
+img { display: block; max-width: 100%; }
+
+/* ---------- estilos de texto (Bici v2/…) ---------- */
+.display { font-family: var(--display); font-weight: 600; font-size: clamp(38px, 4.45vw, 64px); line-height: 0.96; letter-spacing: -0.02em; text-transform: uppercase; }
+.h2 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 3.05vw, 44px); line-height: 1; letter-spacing: -0.015em; text-transform: uppercase; }
+.h3 { font-family: var(--display); font-weight: 600; font-size: 18px; line-height: 1.15; letter-spacing: -0.005em; text-transform: uppercase; }
+.price { font-family: var(--display); font-weight: 500; font-size: 28px; line-height: 1; letter-spacing: -0.01em; }
+.body { font-size: 14px; line-height: 1.5; }
+.small { font-size: 12px; line-height: 1.45; }
+.label { font-size: 12px; font-weight: 500; line-height: 1; }
+.caption { font-family: var(--display); font-weight: 600; font-size: 11px; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; }
+.ghost { color: var(--ink-ghost); }
+.soft { color: var(--ink-soft); }
+.on-dark { color: var(--on-dark); }
+.on-dark-soft { color: var(--on-dark-soft); }
+.center { text-align: center; }
+.ghost-word { font-family: var(--display); font-weight: 600; font-size: clamp(90px, 18vw, 260px); line-height: 0.85; letter-spacing: -0.04em; text-transform: uppercase; color: var(--surface); white-space: nowrap; text-align: center; pointer-events: none; user-select: none; }
+
+/* ---------- botones (Button v2) ---------- */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 14px 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 500; line-height: 1; white-space: nowrap; transition: transform 0.2s ease; }
+.btn:hover { transform: translateY(-1px); }
+.btn--primary { background: var(--ink); color: var(--on-dark); }
+.btn--secondary { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+.btn--on-dark { background: var(--on-dark); color: var(--ink); }
+
+/* ---------- nav ---------- */
+.nav { position: relative; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 22px var(--gutter); height: 80px; }
+.brand { font-family: var(--display); font-weight: 600; font-size: 18px; letter-spacing: -0.005em; text-transform: uppercase; }
+.nav__links { display: flex; align-items: center; gap: 32px; font-size: 12px; font-weight: 500; }
+
+/* =================================================================
+   ESCENA FIJA: portada + "Cada pieza: en su lugar"
+   --intro (0 → 1) la escribe scenes.ts: 0 = portada, 1 = "Cada pieza"
+   ================================================================= */
+.showcase { --intro: 0; height: var(--showcase-length); margin-top: -80px; }
+.showcase__pin { position: sticky; top: 0; height: 100vh; min-height: 640px; overflow: hidden; touch-action: pan-y; }
+.showcase__pin.is-dragging { cursor: grabbing; }
+.showcase__pin needle-engine { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* velo que se retira cuando la bici está lista (Needle deja de renderizar si el propio <needle-engine> tiene opacity 0) */
+.showcase__pin::after { content: ""; position: absolute; inset: 0; background: var(--bg); transition: opacity 1s ease; pointer-events: none; z-index: 1; }
+.showcase__pin.is-ready::after { opacity: 0; }
+
+/* fundido entre los textos de portada y los de "Cada pieza" */
+.fade-hero { opacity: calc(1 - var(--intro)); transform: translateY(calc(var(--intro) * -24px)); }
+.fade-explode { opacity: var(--intro); transform: translateY(calc((1 - var(--intro)) * 24px)); }
+/* solo se puede hacer click en los textos visibles (.is-explode lo pone scenes.ts) */
+.fade-hero, .fade-explode { pointer-events: none; }
+.fade-hero > *, .showcase.is-explode .fade-explode > *, .showcase.is-explode .fade-explode.tab, .showcase.is-explode .rotate { pointer-events: auto; }
+.showcase.is-explode .fade-hero > * { pointer-events: none; }
+
+.showcase__head { position: absolute; z-index: 3; left: 0; right: 0; top: 120px; display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; padding: 0 var(--gutter); }
+.showcase__head.fade-explode { top: 112px; align-items: flex-end; }
+.hero__title { display: flex; flex-direction: column; gap: 28px; max-width: 760px; }
+.meta { display: flex; flex-direction: column; gap: 6px; }
+.hero__intro { width: 250px; padding-top: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 20px; }
+.section-head__intro { width: 250px; }
+.showcase .ghost-word { position: absolute; z-index: 0; left: 0; right: 0; bottom: -0.16em; }
+.showcase needle-engine { z-index: 0; }
+.scroll-hint { position: absolute; z-index: 3; left: var(--gutter); bottom: 49px; display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.scroll-hint i { width: 64px; height: 1px; background: var(--ink); }
+
+/* selector de color: columna a la derecha, siempre visible */
+.swatches { position: absolute; z-index: 4; right: var(--gutter); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; }
+.swatch { position: relative; width: 22px; height: 22px; border-radius: 50%; }
+.swatch::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--c); }
+.swatch::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--ink); opacity: 0; transform: scale(0.7); transition: opacity 0.2s ease, transform 0.2s ease; }
+.swatch.is-active::after { opacity: 1; transform: scale(1); }
+
+.rotate { position: absolute; top: 50%; z-index: 3; font-family: var(--display); font-size: 44px; line-height: 1; color: var(--ink-soft); padding: 8px; transition: color 0.2s ease; }
+.rotate:hover { color: var(--ink); }
+.rotate--prev { left: var(--gutter); }
+.rotate--next { right: calc(var(--gutter) + 40px); }
+
+.leaders { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; overflow: visible; }
+.leaders path { fill: none; stroke: var(--ink); stroke-width: 1; }
+.leaders circle { fill: var(--ink); stroke: var(--bg); stroke-width: 1.5; }
+.callout { position: absolute; z-index: 3; width: 112px; display: flex; flex-direction: column; gap: 6px; opacity: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+.show-callouts .leaders, .show-callouts .callout { opacity: 1; transform: none; }
+.callout__label { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; }
+.callout__label i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.callout__thumb { width: 112px; height: 84px; border-radius: 6px; background: var(--surface); overflow: hidden; }
+.callout__thumb img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+
+/* pestañas abajo; dejan lugar al menú de Needle (licencia gratuita), que va fijo al pie */
+.tabs { position: absolute; z-index: 3; left: 0; right: 0; bottom: 64px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 var(--gutter); }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--ink-ghost); text-align: center; transition: color 0.3s ease, border-color 0.3s ease; }
+.tab.is-active { border-top-color: var(--ink); color: var(--ink); }
+.tab.is-active .small { color: var(--ink-soft); }
+
+/* =================================================================
+   LAS PIEZAS: filas con tarjetas que crecen al pasar el mouse
+   ================================================================= */
+.parts { padding: 120px var(--gutter); display: flex; flex-direction: column; gap: 56px; }
+.parts__rows { display: flex; flex-direction: column; gap: 16px; }
+.parts__row { display: flex; gap: 16px; height: var(--row-height); transition: height 0.6s cubic-bezier(.2, .7, .2, 1); }
+.feature { --w: 1; flex: var(--w) 1 0; min-width: 0; background: var(--surface); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; scroll-margin-top: 24px; outline: none;
+  transition: flex-grow 0.6s cubic-bezier(.2, .7, .2, 1), background-color 0.4s ease, opacity 0.4s ease; }
+.feature__img { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.feature__img img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: contain; padding: 18px;
+  transition: transform 0.6s cubic-bezier(.2, .7, .2, 1), filter 0.4s ease; }
+.feature__text { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 22px; }
+
+@media (hover: hover) {
+  /* en reposo las piezas van en gris; con hover toman el color elegido */
+  .feature__img img { filter: grayscale(1) contrast(1.04); }
+  .parts__row:has(.feature:hover, .feature:focus-visible) { height: var(--row-height-hover); }
+  .feature:hover, .feature:focus-visible {
+    flex-grow: calc(var(--w) * var(--hover-grow));
+    background: color-mix(in srgb, var(--bike-color) 16%, var(--surface));
+  }
+  .feature:hover .feature__img img, .feature:focus-visible .feature__img img { filter: none; transform: scale(1.05); }
+  .parts__rows:has(.feature:hover) .feature:not(:hover) { opacity: 0.55; }
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* =================================================================
+   EL DETALLE: las cotas se dibujan al entrar en pantalla
+   ================================================================= */
+.detail { padding: 40px var(--gutter) 140px; display: flex; flex-direction: column; gap: 56px; }
+.detail__body { display: flex; align-items: center; gap: 48px; }
+.specs { display: grid; grid-template-columns: repeat(2, 232px); gap: 12px; flex-shrink: 0; }
+.spec { height: 128px; padding: 16px; border-radius: var(--radius); background: var(--surface); display: flex; flex-direction: column; justify-content: space-between; }
+.spec .label { margin-bottom: 4px; }
+.dims { flex: 1; max-width: 820px; height: auto; overflow: visible; }
+.dims__bike { opacity: 0; transform: translateY(10px); transform-box: fill-box; transition: opacity 0.9s ease, transform 0.9s cubic-bezier(.2, .7, .2, 1); }
+.dims__lines path { fill: none; stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.9s cubic-bezier(.65, 0, .35, 1) calc(var(--d) + 0.35s); }
+.dims__text text { font-family: var(--sans); font-size: 12px; font-weight: 500; fill: var(--ink); opacity: 0; transition: opacity 0.5s ease calc(var(--d) + 0.6s); }
+.dims.is-in .dims__bike { opacity: 0.85; transform: none; }
+.dims.is-in .dims__lines path { stroke-dashoffset: 0; }
+.dims.is-in .dims__text text { opacity: 1; }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
+/* ---------- CTA ---------- */
+.cta { background: var(--dark); padding: 120px var(--gutter); display: flex; justify-content: space-between; gap: 48px; }
+.cta__copy { max-width: 760px; display: flex; flex-direction: column; align-items: flex-start; gap: 32px; }
+.cta__copy .body { max-width: 380px; }
+.index { list-style: none; margin: 0; padding: 0; width: min(560px, 100%); }
+.index li { border-top: 1px solid var(--dark-2); }
+.index li:last-child { border-bottom: 1px solid var(--dark-2); }
+.index a { display: flex; align-items: center; gap: 24px; padding: 16px 0; color: var(--on-dark); transition: padding 0.25s ease; }
+.index a:hover { padding-left: 8px; }
+.index .caption { width: 14px; color: var(--on-dark-soft); }
+.index .h3 { flex: 1; }
+.index .body { color: var(--on-dark-soft); }
 
-h1,
-h2 {
-  font-family: var(--serif);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
-  margin: 0;
-}
-
-em {
-  font-style: italic;
-  color: var(--accent);
-}
-
-.eyebrow {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 14px;
-}
-
-.lead {
-  font-size: clamp(16px, 1.4vw, 19px);
-  color: var(--ink-soft);
-  max-width: 34ch;
-  margin: 22px 0 0;
-}
-
-/* ---------- escena 3D ---------- */
-/* El fundido de entrada va en el contenedor: Needle deja de renderizar si el propio
-   <needle-engine> tiene opacity 0, y nunca llegaría a "scene-ready". */
-.stage {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1.2s ease;
-}
-
-.scene-ready .stage {
-  opacity: 1;
-}
-
-.stage needle-engine {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* ---------- etiquetas sobre las piezas ---------- */
-.tags {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.tag {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  will-change: transform;
-}
-
-.tag.is-visible {
-  opacity: 1;
-}
-
-.tag__dot {
-  position: absolute;
-  width: var(--tag-dot-size);
-  height: var(--tag-dot-size);
-  margin: calc(var(--tag-dot-size) / -2) 0 0 calc(var(--tag-dot-size) / -2);
-  border-radius: 50%;
-  background: var(--tag-dot-color);
-  box-shadow: 0 0 0 calc(var(--tag-dot-size) * 0.4) color-mix(in srgb, var(--tag-dot-color) 18%, transparent);
-}
-
-.tag__line {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 1px;
-  height: var(--tag-line-length);
-  background: var(--tag-line-color);
-  transform-origin: bottom;
-  transform: rotate(var(--tag-line-angle));
-}
-
-/* el nombre se ubica solo al final de la línea, según su largo y ángulo */
-.tag__text {
-  position: absolute;
-  left: calc(sin(var(--tag-line-angle)) * var(--tag-line-length) + 4px);
-  bottom: calc(cos(var(--tag-line-angle)) * var(--tag-line-length) - 0.9em);
-  white-space: nowrap;
-  font-size: var(--tag-font-size);
-  font-weight: 500;
-  padding: 0.4em 0.85em;
-  border-radius: var(--tag-radius);
-  background: var(--tag-bg);
-  color: var(--tag-text);
-  border: 1px solid var(--line);
-}
-
-.tag.is-focus .tag__text {
-  background: var(--tag-focus-bg);
-  border-color: var(--tag-focus-bg);
-  color: var(--tag-focus-text);
-}
-
-/* ---------- barra superior e índice ---------- */
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 20px var(--gutter);
-}
-
-.brand {
-  font-family: var(--serif);
-  font-size: 22px;
-}
-
-.index {
-  display: flex;
-  gap: 4px;
-}
-
-.index a {
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  padding: 6px 10px;
-  border-radius: 999px;
-  color: var(--ink-soft);
-  text-decoration: none;
-  font-size: 13px;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-.index a:hover {
-  color: var(--ink);
-}
-
-.index a.is-active {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.index__num {
-  font-size: 10px;
-  opacity: 0.7;
-}
-
-/* ---------- secciones ---------- */
-main {
-  position: relative;
-  z-index: 1;
-}
-
-.scene {
-  position: relative;
-  min-height: 100vh;
-  padding: 0 var(--gutter);
-}
-
-.hero {
-  display: flex;
-  align-items: center;
-}
-
-.hero h1 {
-  font-size: clamp(56px, 9vw, 132px);
-}
-
-.hero__copy {
-  max-width: 640px;
-  padding-top: 8vh;
-}
-
-.scroll-hint {
-  position: absolute;
-  left: var(--gutter);
-  bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-.scroll-hint span {
-  width: 1px;
-  height: 36px;
-  background: var(--ink);
-  opacity: 0.4;
-  animation: hint 1.8s ease-in-out infinite;
-  transform-origin: top;
-}
-
-@keyframes hint {
-  0% { transform: scaleY(0); }
-  50% { transform: scaleY(1); }
-  100% { transform: scaleY(0); transform-origin: bottom; }
-}
-
-.explode,
-.assemble {
-  min-height: 260vh;
-}
-
-.explode__copy {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: 9vh;
-}
-
-.explode h2,
-.assemble h2,
-.outro h2 {
-  font-size: clamp(44px, 6vw, 88px);
-}
-
-/* tarjetas de cada pieza */
-/* La sección mide una pantalla + --part-hold; la tarjeta queda fija (sticky)
-   mientras se recorre ese tramo y después sigue el scroll normal. */
-.part {
-  min-height: calc(100vh + var(--hold, var(--part-hold)));
-}
-
-.part__pin {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-}
-
-.card {
-  width: min(420px, 100%);
-  padding: 32px;
-  border-radius: 20px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.card h2 {
-  font-size: clamp(44px, 4.4vw, 64px);
-  margin-bottom: 18px;
-}
-
-.card__num {
-  font-family: var(--serif);
-  font-size: 20px;
-  margin: 0 0 28px;
-}
-
-.card__num span {
-  color: var(--ink-soft);
-}
-
-.card__body {
-  margin: 0;
-  color: var(--ink-soft);
-}
-
-.card__details {
-  list-style: none;
-  padding: 0;
-  margin: 24px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.card__details li {
-  font-size: 12px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-}
-
-.outro {
-  display: flex;
-  align-items: flex-end;
-  padding-bottom: 12vh;
-}
-
-.button {
-  display: inline-block;
-  margin-top: 28px;
-  padding: 12px 22px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--bg);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
+/* ---------- FOOTER ---------- */
+.footer { background: var(--dark); border-top: 1px solid var(--dark-2); padding: 72px var(--gutter) 32px; display: flex; flex-direction: column; gap: 48px; overflow: hidden; }
+.footer__top { display: flex; justify-content: space-between; gap: 48px; }
+.newsletter { width: 320px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; align-items: center; border-bottom: 1px solid var(--on-dark-soft); padding: 20px 0 10px; }
+.field input { flex: 1; background: none; border: 0; outline: none; color: var(--on-dark); font: inherit; font-size: 12px; }
+.field input::placeholder { color: var(--on-dark-soft); }
+.field button { color: var(--on-dark); font-size: 12px; }
+.footer__cols { display: flex; gap: 96px; }
+.footer__cols div { display: flex; flex-direction: column; gap: 12px; }
+.footer__cols .caption { color: var(--on-dark-soft); }
+.footer__cols a { color: var(--on-dark); font-size: 12px; line-height: 1.45; }
+.footer__cols a:hover { color: var(--on-dark-soft); }
+.ghost-word--dark { color: var(--dark-2); }
+.footer__bottom { display: flex; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--dark-2); }
 
 /* ---------- mobile ---------- */
 @media (max-width: 899px) {
-  .index {
-    display: none;
-  }
-
-  .hero {
-    align-items: flex-start;
-  }
-
-  .hero__copy {
-    padding-top: 96px;
-  }
-
-  .part__pin {
-    align-items: flex-end;
-    padding-bottom: 72px; /* deja lugar al menú de Needle */
-  }
-
-  .card {
-    padding: 20px;
-  }
-
-  .card h2 {
-    font-size: 40px;
-    margin-bottom: 10px;
-  }
-
-  .card__body {
-    font-size: 14px;
-  }
-
-  .card__details {
-    margin-top: 14px;
-  }
-
-  .card__num {
-    margin-bottom: 14px;
-  }
-
-  .explode__copy {
-    justify-content: flex-start;
-    padding: 96px 0 0;
-  }
+  .nav__links a:not(.btn) { display: none; }
+  .showcase__head { flex-direction: column; top: 96px; gap: 16px; }
+  .showcase__head.fade-explode { top: 96px; align-items: flex-start; }
+  .hero__title { gap: 16px; }
+  .hero__intro, .section-head__intro { width: auto; padding-top: 0; }
+  .hero__intro { flex-direction: row; align-items: center; gap: 16px; }
+  .swatches { flex-direction: row; top: auto; bottom: 118px; right: 50%; transform: translateX(50%); }
+  .scroll-hint { bottom: 72px; }
+  .callout__thumb { display: none; }
+  .callout { width: auto; }
+  .callout[data-side="right"] { left: auto !important; right: 8px; }
+  .rotate { font-size: 32px; }
+  .rotate--next { right: var(--gutter); }
+  .tabs { gap: 10px; }
+  .tab .small { display: none; }
+  .parts { padding: 80px var(--gutter); gap: 32px; }
+  .parts__row { flex-direction: column; height: auto; }
+  .feature { flex: none; }
+  .feature__img { flex: none; height: 240px; }
+  .detail { padding: 24px var(--gutter) 80px; gap: 32px; }
+  .detail__body { flex-direction: column; align-items: stretch; }
+  .specs { grid-template-columns: 1fr 1fr; }
+  .spec { height: 116px; }
+  .dims { width: 100%; }
+  .cta { flex-direction: column; padding: 80px var(--gutter); }
+  .footer__top { flex-direction: column; }
+  .newsletter { width: 100%; }
+  .footer__cols { gap: 40px; flex-wrap: wrap; }
+  .footer__bottom { flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  .scroll-hint span {
-    animation: none;
-  }
+  html { scroll-behavior: auto; }
+  .dims__lines path, .dims__text text, .dims__bike, .feature, .parts__row { transition: none; }
 }

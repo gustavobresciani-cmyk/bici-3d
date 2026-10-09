@@ -1,122 +1,87 @@
-// Contenido y cámara de cada pieza.
+// Contenido del diseño v2 (Figma · "🎨 Diseño v2") y configuración de las escenas 3D.
 // Las vistas usan las MISMAS coordenadas que el CONFIG de bici.py (Blender, Z arriba):
 //   az: 0 = de frente, 90 = lado de la cadena, -90 = lado opuesto · el: grados hacia arriba
-//   dist: metros al punto que mira · target: [x, y, z] o el nombre de una pieza
+//   dist: metros al punto que mira · target: [x, y, z]
 
-export type View = {
-  az: number;
-  el: number;
-  dist: number;
-  target: [number, number, number] | string;
-  /** desplazamiento extra del punto que mira (Blender) cuando target es una pieza */
-  offset?: [number, number, number];
-};
+/** lift: corre la imagen en vertical (fracción del alto; negativo = la bici baja) para dejar lugar a los textos */
+export type View = { az: number; el: number; dist: number; target: [number, number, number]; lift?: number };
 
-// Igual que CAM_START / CAM_END en bici.py
-export const START_VIEW: View = { az: 38, el: 14, dist: 2.45, target: [0.1, 0.0, 0.52] };
-// (la web la aleja un poco más que Blender para que entren las etiquetas)
-export const END_VIEW: View = { az: -84, el: 13, dist: 3.7, target: [0.07, 0.0, 0.66] };
-/** Fracción del desarme en la que la cámara termina de girar (CAM_SECONDS / EXPLODE_SECONDS) */
-export const CAM_FRACTION = 1.5 / 4.0;
+// ---------- vistas de cámara ----------
+export const VIEWS = {
+  // portada: la bici abajo y a la derecha del título (la escena ocupa toda la pantalla)
+  hero: { az: 38, el: 14, dist: 3.2, target: [0.1, 0.0, 0.5], lift: -0.13 },
+  heroMobile: { az: 38, el: 14, dist: 3.3, target: [0.3, 0.0, 0.5], lift: -0.13 },
+  armada: { az: 32, el: 12, dist: 3.35, target: [0.1, 0.0, 0.52], lift: 0.03 },
+  armadaMobile: { az: 32, el: 12, dist: 3.1, target: [0.25, 0.0, 0.52], lift: -0.02 },
+  lateral: { az: -90, el: 3, dist: 3.2, target: [0.09, 0.0, 0.52], lift: -0.02 },      // perfil puro
+  explotada: { az: -84, el: 13, dist: 3.8, target: [0.07, 0.0, 0.62], lift: -0.03 },  // = CAM_END (un poco más lejos)
+  explotadaMobile: { az: -84, el: 13, dist: 5.2, target: [0.12, 0.0, 0.62], lift: 0.02 }, // celular: más lejos para que entren las ruedas
+} satisfies Record<string, View>;
 
-export type Part = {
-  id: string;
-  number: string;
-  name: string;
-  kicker: string;
-  body: string;
-  details: string[];
-  /** cuánto queda fija la tarjeta (scroll extra, ej. "150vh"). Si no se indica, usa --part-hold del CSS */
-  hold?: string;
-  /** nodos del .glb que forman esta pieza (nombres de objetos en Blender) */
-  nodes: string[];
-  view: View;
-};
+// ---------- colores de la bici (selector) ----------
+// hex = variables "v2/swatch-*" de Figma. Cambian solo la pintura del cuadro y la horquilla.
+export const SWATCHES = [
+  { id: "sky", name: "Sky", hex: "#B9CBD6" },
+  { id: "sand", name: "Sand", hex: "#C9C1AE" },
+  { id: "graphite", name: "Graphite", hex: "#4B5048" },
+  { id: "forest", name: "British racing green", hex: "#1F4D3A" },
+  { id: "accent", name: "Red", hex: "#E5483A" },
+];
+export const DEFAULT_SWATCH = "graphite";
+/** nombre del material de pintura dentro del .glb (make_mat("Pintura") en bici.py) */
+export const PAINT_MATERIAL = "BICI_Pintura";
 
-export const PARTS: Part[] = [
-  {
-    id: "cuadro",
-    number: "01",
-    name: "Cuadro",
-    kicker: "La estructura",
-    body:
-      "Es el esqueleto de la bici: todas las demás piezas se montan sobre él. Los tubos forman el clásico doble triángulo, que reparte el peso del ciclista y las fuerzas del pedaleo. En los cuadros de acero clásicos, las uniones llevan refuerzos que también le dan su estética.",
-    details: ["Tubo superior", "Tubo inferior", "Tubo de asiento", "Vainas y tirantes"],
-    nodes: ["BICI_Cuadro"],
-    view: { az: -62, el: 14, dist: 2.8, target: "BICI_Cuadro", offset: [0, 0, 0.05] },
-  },
-  {
-    id: "horquilla",
-    number: "02",
-    name: "Horquilla",
-    kicker: "Dirección y estabilidad",
-    body:
-      "Sostiene la rueda delantera y gira junto con el manubrio. La curva de sus brazos adelanta el eje de la rueda, lo que hace que la bici vaya derecha sola y absorba parte de las vibraciones del camino. En la corona va montado el freno delantero.",
-    details: ["Corona", "Brazos curvos", "Punteras", "Freno de herradura"],
-    nodes: ["BICI_Horquilla"],
-    view: { az: -32, el: 8, dist: 1.6, target: "BICI_Horquilla" },
-  },
-  {
-    id: "ruedas",
-    number: "03",
-    name: "Ruedas",
-    kicker: "El contacto con el suelo",
-    body:
-      "Cada rueda combina una llanta liviana, rayos tensados que se cruzan para transmitir la fuerza del pedaleo y una maza central que gira sobre rulemanes. La cubierta tiene una banda de rodamiento con dibujo para agarrarse al piso.",
-    details: ["Cubierta", "Llanta", "32 rayos cruzados", "Maza y cierre rápido"],
-    nodes: ["BICI_Rueda_Delantera", "BICI_Rueda_Trasera"],
-    view: { az: -86, el: 6, dist: 4.1, target: [0.2, 0.0, 0.45] },
-  },
-  {
-    id: "transmision",
-    number: "04",
-    name: "Transmisión",
-    kicker: "Del pedal al avance",
-    body:
-      "Convierte el pedaleo en movimiento. Las bielas hacen girar el plato, la cadena lleva esa fuerza hasta el cassette de la rueda trasera, y el cambio mueve la cadena entre coronas para elegir un pedaleo más liviano o más rápido.",
-    details: ["Plato y bielas", "Pedales", "Cadena", "Cassette de 8 coronas"],
-    nodes: ["BICI_Transmision"],
-    view: { az: 58, el: 18, dist: 2.1, target: "BICI_Transmision" },
-  },
-  {
-    id: "manubrio",
-    number: "05",
-    name: "Manubrio",
-    kicker: "Control en tus manos",
-    body:
-      "Desde acá se dirige y se frena. El tubo de dirección baja por dentro del cuadro hasta la horquilla y la potencia lo une al manubrio. Los puños dan agarre y las manetas tiran de los cables que accionan los frenos.",
-    details: ["Tubo de dirección", "Potencia", "Puños", "Manetas de freno"],
-    nodes: ["BICI_Manubrio"],
-    view: { az: -18, el: 22, dist: 1.25, target: "BICI_Manubrio" },
-  },
-  {
-    id: "asiento",
-    number: "06",
-    name: "Asiento",
-    kicker: "Comodidad",
-    body:
-      "El asiento de cuero se apoya sobre dos rieles de acero que funcionan como un pequeño resorte. La tija entra en el tubo de asiento y se ajusta en altura para que la pierna quede casi estirada al pedalear.",
-    details: ["Asiento de cuero", "Rieles", "Tija regulable", "Remaches"],
-    nodes: ["BICI_Asiento"],
-    view: { az: -128, el: 18, dist: 1.15, target: "BICI_Asiento" },
-  },
+// ---------- sección "Cada pieza: en su lugar" ----------
+// Pestañas: el scroll dentro de la sección las recorre en orden; un click salta a cada una.
+export const TABS = [
+  { id: "armada", title: "Assembled view", body: "The complete bike, just as it hits the street." },
+  { id: "lateral", title: "Side view", body: "The profile, with the frame's real proportions." },
+  { id: "explotada", title: "Exploded view", body: "Every part floating along its mounting axis." },
+] as const;
+
+// Etiquetas con miniatura: posición de la tarjeta en % de la pantalla de la escena fija
+// (entre el título de arriba y las pestañas de abajo) y la pieza a la que apunta la línea.
+export const CALLOUTS = [
+  { node: "BICI_Asiento", label: "Saddle", img: "asiento", x: 20.8, y: 24 },
+  { node: "BICI_Manubrio", label: "Handlebar", img: "manubrio", x: 72.2, y: 23 },
+  { node: "BICI_Transmision", label: "Drivetrain", img: "transmision", x: 45.8, y: 71 },
+  { node: "BICI_Rueda_Delantera", label: "Front wheel", img: "ruedas", x: 82, y: 52 },
 ];
 
-/** Nombre corto para la etiqueta de cada nodo */
-export const NODE_LABELS: Record<string, string> = {
-  BICI_Cuadro: "Cuadro",
-  BICI_Horquilla: "Horquilla",
-  BICI_Rueda_Delantera: "Rueda delantera",
-  BICI_Rueda_Trasera: "Rueda trasera",
-  BICI_Transmision: "Transmisión",
-  BICI_Manubrio: "Manubrio",
-  BICI_Asiento: "Asiento",
-};
-
-/** Dónde apunta la etiqueta, relativo al centro de la pieza (Blender). El centro del
- * cuadro cae en el hueco del triángulo, así que se sube al tubo superior. */
+/** Dónde apunta cada línea, relativo al centro de la pieza (Blender). */
 export const LABEL_ANCHORS: Record<string, [number, number, number]> = {
   BICI_Cuadro: [0.02, 0, 0.24],
-  // el manubrio incluye el tubo de dirección: se apunta a la potencia, no al centro
   BICI_Manubrio: [-0.04, 0, 0.06],
+  BICI_Asiento: [0.0, 0, 0.06],
 };
+
+// ---------- "Las piezas: una por una" ----------
+// row: fila de la grilla · weight: ancho relativo dentro de la fila (al hacer hover la tarjeta crece)
+// img: nombre del render; la web usa <img>-<color>.webp según el color elegido
+export const PARTS = [
+  { id: "cuadro", title: "Frame", body: "The steel skeleton that holds it all together: top tube, down tube and seat tube.", img: "cuadro", row: 1, weight: 2 },
+  { id: "manubrio", title: "Handlebar", body: "Steering, brakes and grip, mounted on the steerer tube.", img: "manubrio", row: 1, weight: 1 },
+  { id: "ruedas", title: "Wheels", body: "Two 700 mm rims with hand-tensioned spokes and city tires.", img: "ruedas", row: 2, weight: 1 },
+  { id: "transmision", title: "Drivetrain", body: "Chainring, cranks, chain and cassette turn every pedal stroke into forward motion.", img: "transmision", row: 2, weight: 2 },
+  { id: "horquilla", title: "Fork", body: "Holds the front wheel and soaks up the bumps in the road.", img: "horquilla", row: 3, weight: 1 },
+  { id: "asiento", title: "Saddle", body: "A leather saddle on an adjustable seatpost to find just the right height.", img: "asiento", row: 3, weight: 1 },
+] as const;
+
+// ---------- "El detalle: en números" ----------
+export const SPECS = [
+  { title: "Frame", value: "Chromoly steel, 2.1 kg" },
+  { title: "Drivetrain", value: "Single speed, 46 × 16 gearing" },
+  { title: "Wheels", value: "700c rims, 32 spokes" },
+  { title: "Total weight", value: "10.8 kg, ready to ride" },
+];
+
+// ---------- índice del CTA (cada fila lleva a su tarjeta) ----------
+export const INDEX = [
+  { n: "01", name: "Frame", href: "#cuadro" },
+  { n: "02", name: "Fork", href: "#horquilla" },
+  { n: "03", name: "Front wheel", href: "#ruedas" },
+  { n: "04", name: "Rear wheel", href: "#ruedas" },
+  { n: "05", name: "Drivetrain", href: "#transmision" },
+  { n: "06", name: "Handlebar", href: "#manubrio" },
+  { n: "07", name: "Saddle", href: "#asiento" },
+];

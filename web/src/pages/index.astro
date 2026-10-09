@@ -1,117 +1,188 @@
 ---
+// Diseño v2 · Figma "🎨 Diseño v2" → "Desktop · Landing v2"
+// La portada y "Cada pieza: en su lugar" comparten una sola escena 3D fija (ver scripts/scenes.ts).
 import "../styles/global.css";
-import { NODE_LABELS, PARTS } from "../data/parts";
+import { CALLOUTS, DEFAULT_SWATCH, INDEX, PARTS, SPECS, SWATCHES, TABS } from "../data/parts";
+
+const arrow = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4.5 9.5l5-5M5 4.5h4.5V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const clock = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7.25" stroke="currentColor" stroke-width="1.3"/><path d="M9 5v4.2l2.6 1.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+const img = (name: string) => `/img/parts/${name}-${DEFAULT_SWATCH}.webp`;
+const rows = [1, 2, 3].map((r) => PARTS.filter((p) => p.row === r));
 ---
 
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Anatomía de una bicicleta</title>
-    <meta name="description" content="Una bicicleta que se desarma pieza por pieza mientras scrolleás." />
+    <title>Anatomy of a bike</title>
+    <meta name="description" content="A 3D bicycle that comes apart piece by piece: frame, fork, wheels, drivetrain, handlebar and saddle." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <!-- escena 3D fija detrás del contenido -->
-    <div class="stage" aria-hidden="true">
-      <needle-engine
-        src="/models/bici.glb"
-        camera-controls="0"
-        background-color="#ECE7DD"
-        environment-image="studio"
-        environment-intensity="1.1"
-        tone-mapping="neutral"
-        contactshadows="0.55"
-      ></needle-engine>
-      <div class="tags">
-        {
-          Object.entries(NODE_LABELS).map(([node, label]) => (
-            <div class="tag" data-tag={node}>
-              <span class="tag__dot" />
-              <span class="tag__line" />
-              <span class="tag__text">{label}</span>
-            </div>
-          ))
-        }
+    <nav class="nav" id="top">
+      <a class="brand" href="#top">Anatomy</a>
+      <div class="nav__links">
+        <a href="#piezas">Parts</a>
+        <a href="#explotada" data-goto="explotada">Exploded view</a>
+        <a href="#detalle">Detail</a>
+        <a href="#contacto">Contact</a>
+        <a class="btn btn--primary" href="#explotada" data-goto="armada">View in 3D <Fragment set:html={arrow} /></a>
       </div>
-    </div>
-
-    <header class="topbar">
-      <span class="brand">Anatomía <em>de una bicicleta</em></span>
-      <nav class="index" aria-label="Piezas">
-        {
-          PARTS.map((p) => (
-            <a href={`#${p.id}`} data-nav={p.id}>
-              <span class="index__num">{p.number}</span>
-              <span class="index__name">{p.name}</span>
-            </a>
-          ))
-        }
-      </nav>
-    </header>
+    </nav>
 
     <main>
-      <section class="scene hero" data-scene="hero">
-        <div class="hero__copy">
-          <p class="eyebrow">Una bici, siete piezas</p>
-          <h1>Anatomía de<br /><em>una bicicleta</em></h1>
-          <p class="lead">Scrolleá para desarmarla y conocer cada una de sus partes.</p>
-        </div>
-        <div class="scroll-hint" aria-hidden="true"><span></span>Scroll</div>
-      </section>
+      <!-- ============ PORTADA + CADA PIEZA: una sola escena fija ============ -->
+      <section class="showcase" id="explotada" data-explode>
+        <div class="showcase__pin" data-stage>
+          <p class="ghost-word fade-hero" aria-hidden="true">Bicycle</p>
+          <needle-engine id="bike-3d" src="/models/bici.glb" camera-controls="0" environment-image="studio" tone-mapping="neutral" contactshadows="0.45"></needle-engine>
 
-      <section class="scene explode" data-scene="explode">
-        <div class="explode__copy">
-          <p class="eyebrow">Vista explotada</p>
-          <h2>Cada pieza<br /><em>en su lugar</em></h2>
-        </div>
-      </section>
-
-      {
-        PARTS.map((p) => (
-          <section class="scene part" id={p.id} data-scene="part" data-part={p.id} style={p.hold ? `--hold: ${p.hold}` : undefined}>
-            <div class="part__pin">
-              <article class="card">
-                <p class="card__num">{p.number} <span>/ 0{PARTS.length}</span></p>
-                <p class="eyebrow">{p.kicker}</p>
-                <h2>{p.name}</h2>
-                <p class="card__body">{p.body}</p>
-                <ul class="card__details">
-                  {p.details.map((d) => (
-                    <li>{d}</li>
-                  ))}
-                </ul>
-              </article>
+          <svg class="leaders" aria-hidden="true">
+            {CALLOUTS.map(() => (<path data-leader />))}
+            {CALLOUTS.map(() => (<circle data-point r="4.5" />))}
+          </svg>
+          {CALLOUTS.map((c) => (
+            <div class="callout" data-callout={c.node} data-side={c.x > 60 ? "right" : "left"} style={`left: ${c.x}%; top: ${c.y}%`}>
+              <span class="callout__label"><i></i>{c.label}</span>
+              <span class="callout__thumb"><img src={img(c.img)} data-part-img={c.img} alt="" loading="lazy" /></span>
             </div>
-          </section>
-        ))
-      }
+          ))}
 
-      <section class="scene assemble" data-scene="assemble">
-        <div class="explode__copy">
-          <p class="eyebrow">De vuelta a una sola pieza</p>
-          <h2>Todo <em>encaja</em></h2>
+          <!-- textos de portada (se funden al scrollear) -->
+          <div class="showcase__head fade-hero">
+            <div class="hero__title">
+              <h1 class="display">Anatomy of a bike</h1>
+              <div class="meta">
+                <span class="small soft">Comes apart into</span>
+                <span class="price">7 parts</span>
+              </div>
+            </div>
+            <div class="hero__intro">
+              <p class="small soft">Scroll to take it apart and get to know every part, from the frame to the saddle.</p>
+              <a class="btn btn--secondary" href="#explotada" data-goto="armada">Start <Fragment set:html={arrow} /></a>
+            </div>
+          </div>
+
+          <!-- textos de "Cada pieza" (aparecen en el mismo lugar) -->
+          <div class="showcase__head fade-explode">
+            <h2 class="h2">Every part:<br /><span class="ghost">In its place</span></h2>
+            <p class="small soft section-head__intro">Seven parts pulled apart along their own axis. Rotate the bike to see them from any angle.</p>
+          </div>
+
+          <div class="swatches" role="group" aria-label="Bike color">
+            {SWATCHES.map((s) => (
+              <button class="swatch" data-swatch={s.id} style={`--c: ${s.hex}`} aria-label={s.name} title={s.name} />
+            ))}
+          </div>
+
+          <div class="scroll-hint fade-hero"><span>01 / 07</span><i></i><span class="soft">Scroll</span></div>
+
+          <button class="rotate rotate--prev fade-explode" data-rotate="-1" aria-label="Rotate left">‹</button>
+          <button class="rotate rotate--next fade-explode" data-rotate="1" aria-label="Rotate right">›</button>
+
+          <div class="tabs fade-explode" role="tablist">
+            {TABS.map((t) => (
+              <button class="tab" data-tab={t.id} role="tab">
+                <span class="caption">{t.title}</span>
+                <span class="small">{t.body}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section class="scene outro" data-scene="outro">
-        <div class="outro__copy">
-          <h2>Lista para <em>rodar</em></h2>
-          <p class="lead">Modelada y animada con un script de Python en Blender, publicada en la web con Needle Engine y Astro.</p>
-          <a class="button" href="#top" data-top>Volver a empezar</a>
+      <!-- ============ LAS PIEZAS: UNA POR UNA ============ -->
+      <section class="parts" id="piezas">
+        <h2 class="h2 center">The parts:<br /><span class="ghost">One by one</span></h2>
+        <div class="parts__rows">
+          {rows.map((row) => (
+            <div class="parts__row">
+              {row.map((p) => (
+                <article class="feature" id={p.id} style={`--w: ${p.weight}`} tabindex="0">
+                  <div class="feature__img"><img src={img(p.img)} data-part-img={p.img} alt={p.title} loading="lazy" /></div>
+                  <div class="feature__text">
+                    <h3 class="h3">{p.title}</h3>
+                    <p class="small soft">{p.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ))}
         </div>
+      </section>
+
+      <!-- ============ EL DETALLE: EN NÚMEROS ============ -->
+      <section class="detail" id="detalle">
+        <h2 class="h2 center">The detail:<br /><span class="ghost">In numbers</span></h2>
+        <div class="detail__body">
+          <div class="specs">
+            {SPECS.map((s) => (
+              <div class="spec">
+                <Fragment set:html={clock} />
+                <div><p class="label">{s.title}</p><p class="small soft">{s.value}</p></div>
+              </div>
+            ))}
+          </div>
+          <!-- cotas en el sistema del frame "Dimensions" de Figma (820 × 474); se dibujan al entrar en pantalla -->
+          <svg class="dims" viewBox="0 0 820 474" role="img" aria-label="Bicycle dimensions" data-dims>
+            <image class="dims__bike" href={img("bici")} data-part-img="bici" x="18.5" y="-16" width="685" height="457" />
+            <g class="dims__lines">
+              <path pathLength="1" style="--d: 0s" d="M188 423h344" />
+              <path pathLength="1" style="--d: .05s" d="M188 418v10M532 418v10" />
+              <path pathLength="1" style="--d: .25s" d="M705 404V20" />
+              <path pathLength="1" style="--d: .3s" d="M700 20h10M700 404h10" />
+              <path pathLength="1" style="--d: .5s" d="M168 342l40 22" />
+              <path pathLength="1" style="--d: .65s" d="M436 89l104 -14" />
+            </g>
+            <g class="dims__text">
+              <text style="--d: .7s" x="360" y="448" text-anchor="middle">1,720 mm</text>
+              <text style="--d: .95s" x="720" y="216">1,050 mm</text>
+              <text style="--d: 1.1s" x="98" y="346">Ø 700 mm</text>
+              <text style="--d: 1.25s" x="546" y="79">Top tube · 560 mm</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ============ CTA ============ -->
+      <section class="cta">
+        <div class="cta__copy">
+          <h2 class="display on-dark">Ready to ride:<br /><span class="on-dark-soft">Take it apart in 3D</span></h2>
+          <p class="body on-dark-soft">Open the interactive view, rotate it with your mouse and scroll to pull every part apart.</p>
+          <a class="btn btn--on-dark" href="#explotada" data-goto="explotada">Open the 3D view <Fragment set:html={arrow} /></a>
+        </div>
+        <ol class="index">
+          {INDEX.map((i) => (
+            <li><a href={i.href}><span class="caption">{i.n}</span><span class="h3">{i.name}</span><span class="body">↗</span></a></li>
+          ))}
+        </ol>
       </section>
     </main>
 
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer" id="contacto">
+      <div class="footer__top">
+        <form class="newsletter" data-newsletter>
+          <h3 class="h3 on-dark">Join the workshop</h3>
+          <p class="small on-dark-soft">New teardowns, renders and process notes. One email a month.</p>
+          <label class="field"><input type="email" name="email" placeholder="Your email" required /><button type="submit" aria-label="Subscribe">→</button></label>
+        </form>
+        <div class="footer__cols">
+          <div><p class="caption">Parts</p><a href="#cuadro">Frame</a><a href="#horquilla">Fork</a><a href="#ruedas">Wheels</a><a href="#transmision">Drivetrain</a></div>
+          <div><p class="caption">Project</p><a href="#top">Blender model</a><a href="https://needle.tools" target="_blank" rel="noopener">Needle Engine</a><a href="https://astro.build" target="_blank" rel="noopener">Astro</a></div>
+          <div><p class="caption">Contact</p><a href="mailto:hola@anatomia.bike">hola@anatomia.bike</a><a href="#" aria-disabled="true">Instagram</a></div>
+        </div>
+      </div>
+      <p class="ghost-word ghost-word--dark" aria-hidden="true">Anatomy</p>
+      <div class="footer__bottom small on-dark-soft"><span>© 2026 Anatomy of a bicycle</span><span>Made with Blender + Needle Engine</span></div>
+    </footer>
+
     <script>
       import "@needle-tools/engine";
-      import "../scripts/bike";
+      import "../scripts/scenes";
       import "../scripts/ui";
     </script>
   </body>
